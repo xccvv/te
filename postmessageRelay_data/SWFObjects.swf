@@ -1,0 +1,1759 @@
+//*******************************************************// 
+//                                                       // 
+//                      DelphiFlash.com                  // 
+//              Copyright (c) 2004 FeatherySoft, Inc.    // 
+//                    info@delphiflash.com               // 
+//                                                       // 
+//*******************************************************// 
+ 
+//  Description:  Level of SWF-objects 
+//  Last update:  13 aug 2004 
+{$I defines.inc} 
+ 
+Unit SWFObjects; 
+interface 
+ Uses Windows, SysUtils, Classes, SWFConst, Graphics, Contnrs, 
+ {$IFDEF ExternalUTF} 
+  Unicode, 
+ {$ENDIF} 
+ {$IFDEF VARIANTS} 
+  Variants, 
+ {$ENDIF} 
+      SWFTools; 
+type 
+  TSWFRect = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFRect); 
+    property Rec: recRect read GetRec write SetRec; 
+    property Rect: TRect read GetRect write SetRect; 
+    property Xmax: LongInt read FXmax write SetXmax; 
+    property Xmin: LongInt read FXmin write SetXmin; 
+    property Ymax: LongInt read FYmax write SetYmax; 
+    property Ymin: LongInt read FYmin write SetYmin; 
+  end; 
+ 
+  TSWFRGB = class (TObject) 
+  public 
+    procedure Assign(Source: TObject); virtual; 
+    property B: Byte read FB write FB; 
+    property G: Byte read FG write FG; 
+    property R: Byte read FR write FR; 
+    property RGB: recRGB read GetRGB write SetRGB; 
+  end; 
+ 
+  TSWFRGBA = class (TSWFRGB) 
+  public 
+    constructor Create(a: boolean = false); 
+    procedure Assign(Source: TObject); override; 
+    property A: Byte read FA write SetA; 
+    property HasAlpha: Boolean read FHasAlpha write SetHasAlpha; 
+    property RGBA: recRGBA read GetRGBA write SetRGBA; 
+  end; 
+ 
+  TSWFColorTransform = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFColorTransform); 
+    property addA: Integer read FaddA write SetaddA; 
+    property addB: Integer read FaddB write SetaddB; 
+    property addG: Integer read FaddG write SetaddG; 
+    property addR: Integer read FaddR write SetaddR; 
+    property hasAdd: Boolean read FhasAdd write FhasAdd; 
+    property hasAlpha: Boolean read FhasAlpha write FhasAlpha; 
+    property hasMult: Boolean read FhasMult write FhasMult; 
+    property multA: Integer read FmultA write SetmultA; 
+    property multB: Integer read FmultB write SetmultB; 
+    property multG: Integer read FmultG write SetmultG; 
+    property multR: Integer read FmultR write SetmultR; 
+    property REC: recColorTransform read GetREC write SetREC; 
+  end; 
+ 
+  TSWFMatrix = class (TObject) 
+  public 
+    procedure Assign(M : TSWFMatrix); 
+    procedure SetRotate(angle: single); 
+    procedure SetScale(ScaleX, ScaleY: single); 
+    procedure SetSkew(SkewX, SkewY: single); 
+    procedure SetTranslate(X, Y: LongInt); 
+    property HasScale: Boolean read FHasScale write FHasScale; 
+    property HasSkew: Boolean read FHasSkew write FHasSkew; 
+    property REC: recMatrix read GetREC write SetREC; 
+    property ScaleX: Single read GetScaleX write SetScaleX; 
+    property ScaleY: Single read GetScaleY write SetScaleY; 
+    property SkewX: Single read GetSkewX write SetSkewX; 
+    property SkewY: Single read GetSkewY write SetSkewY; 
+    property TranslateX: LongInt read FTranslateX write FTranslateX; 
+    property TranslateY: LongInt read FTranslateY write FTranslateY; 
+  end; 
+ 
+  TBasedSWFObject = class (TObject) 
+  public 
+    procedure Assign(Source: TBasedSWFObject); virtual; abstract; 
+    function LibraryLevel: Byte; virtual; abstract; 
+    function MinVersion: Byte; virtual; 
+    procedure WriteToStream(be: TBitsEngine); virtual; abstract; 
+  end; 
+ 
+  TSWFObject = class (TBasedSWFObject) 
+  public 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function GetFullSize: LongInt; 
+    function LibraryLevel: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); virtual; 
+    procedure WriteTagBody(be: TBitsEngine); virtual; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property BodySize: LongWord read FBodySize write FBodySize; 
+    property TagID: Word read FTagID write FTagID; 
+  end; 
+ 
+  TSWFTagEvent = procedure (sender: TSWFObject; BE: TBitsEngine) of object; 
+// =========================================================== 
+//                Control Tags 
+// =========================================================== 
+ 
+  TSWFSetBackgroundColor = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Color: TSWFRGB read FColor; 
+  end; 
+ 
+  TSWFFrameLabel = class (TSWFObject) 
+  public 
+    constructor Create; overload; 
+    constructor Create(fl: string); overload; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property isAnchor: Boolean read FisAnchor write FisAnchor; 
+    property Name: string read FName write FName; 
+  end; 
+ 
+  TSWFProtect = class (TSWFObject) 
+  public 
+    constructor Create; virtual; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Hash: string read FHash write FHash; 
+    property Password: string read FPassword write FPassword; 
+  end; 
+ 
+  TSWFEnd = class (TSWFObject) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFExportAssets = class (TSWFObject) 
+  public 
+    constructor Create; virtual; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Assets: TStringList read FAssets; 
+  end; 
+ 
+  TSWFImportAssets = class (TSWFExportAssets) 
+  public 
+    constructor Create; override; 
+  end; 
+ 
+  TSWFEnableDebugger = class (TSWFProtect) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFEnableDebugger2 = class (TSWFProtect) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFScriptLimits = class (TSWFObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property MaxRecursionDepth: Word read FMaxRecursionDepth write FMaxRecursionDepth; 
+    property ScriptTimeoutSeconds: Word read FScriptTimeoutSeconds write FScriptTimeoutSeconds; 
+  end; 
+ 
+  TSWFSetTabIndex = class (TSWFObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Depth: Word read FDepth write FDepth; 
+    property TabIndex: Word read FTabIndex write FTabIndex; 
+  end; 
+ 
+ 
+// =========================================================== 
+//                          Actions 
+// =========================================================== 
+ 
+// ------------ SWF 3 ----------- 
+  TSWFAction = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFAction); virtual; 
+    function GetFullSize: Word; 
+    function MinVersion: Byte; virtual; 
+    procedure ReadFromStream(be: TBitsEngine); virtual; 
+    procedure WriteActionBody(be: TBitsEngine); virtual; 
+    procedure WriteToStream(be: TBitsEngine); virtual; 
+    property ActionCode: Byte read FActionCode write FActionCode; 
+    property BodySize: Word read FBodySize write FBodySize; 
+  end; 
+ 
+TSWFActionRecord = TSWFAction; 
+ 
+  TSWFActionGotoFrame = class (TSWFAction) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property Frame: Word read FFrame write FFrame; 
+  end; 
+ 
+  TSWFActionGetUrl = class (TSWFAction) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property Target: string read FTarget write FTarget; 
+    property URL: AnsiString read FURL write FURL; 
+  end; 
+ 
+  TSWFActionNextFrame = class (TSWFAction) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionPreviousFrame = class (TSWFAction) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionPlay = class (TSWFAction) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStop = class (TSWFAction) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionToggleQuality = class (TSWFAction) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStopSounds = class (TSWFAction) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionWaitForFrame = class (TSWFAction) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property Frame: Word read FFrame write FFrame; 
+    property SkipCount: Byte read FSkipCount write FSkipCount; 
+  end; 
+ 
+  TSWFActionSetTarget = class (TSWFAction) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property TargetName: string read FTargetName write FTargetName; 
+  end; 
+ 
+  TSWFActionGoToLabel = class (TSWFAction) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property FrameLabel: string read FFrameLabel write FFrameLabel; 
+  end; 
+ 
+// ------------ SWF 4 ----------- 
+ 
+  TSWFAction4 = class (TSWFAction) 
+  public 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFOffsetMarker = class (TSWFAction) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    procedure WriteOffset(be: TBitsEngine); 
+    property isUsing: Boolean read FisUsing write FisUsing; 
+    property JumpToBack: Boolean read FJumpToBack write FJumpToBack; 
+    property MarkerName: string read FMarkerName write FMarkerName; 
+    property RootStreamPosition: LongInt read FRootStreamPosition write FRootStreamPosition; 
+    property SizeOffset: Byte read FSizeOffset write FSizeOffset; 
+    property StartPosition: LongInt read FStartPosition write FStartPosition; 
+  end; 
+ 
+//  -- Stack Operations -- 
+  TPushValueInfo = class (TObject) 
+  public 
+    isValueInit: Boolean; 
+    property Value: Variant read FValue write SetValue; 
+    property ValueType: TSWFValueType read FValueType write SetValueType; 
+  end; 
+ 
+  TSWFActionPush = class (TSWFAction4) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    function AddValue(V: Variant): Integer; 
+    procedure Assign(Source: TSWFAction); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    function ValueCount: Word; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property Value[index: integer]: Variant read GetValue write SetValue; 
+    property ValueInfo[index: integer]: TPushValueInfo read GetValueInfo; 
+  end; 
+ 
+  TSWFActionPop = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Arithmetic Operators -- 
+ 
+  TSWFActionAdd = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionSubtract = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionMultiply = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionDivide = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// --  Numerical Comparison -- 
+ 
+  TSWFActionEquals = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionLess = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Logical Operators -- 
+ 
+  TSWFActionAnd = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionOr = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionNot = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- String Manipulation -- 
+ 
+  TSWFActionStringEquals = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStringLength = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStringAdd = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStringExtract = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStringLess = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionMBStringLength = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionMBStringExtract = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Type Conversion -- 
+ 
+  TSWFActionToInteger = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionCharToAscii = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionAsciiToChar = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionMBCharToAscii = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionMBAsciiToChar = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Control Flow -- 
+ 
+  TSWFActionJump = class (TSWFAction4) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property BranchOffset: SmallInt read FBranchOffset write SetBranchOffset; 
+    property BranchOffsetMarker: TSWFOffsetMarker read GetBranchOffsetMarker write FBranchOffsetMarker; 
+    property StaticOffset: Boolean read FStaticOffset write FStaticOffset; 
+  end; 
+ 
+  TSWFActionIf = class (TSWFActionJump) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionCall = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Variables -- 
+ 
+  TSWFActionGetVariable = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionSetVariable = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Movie Control -- 
+ 
+  TSWFActionGetURL2 = class (TSWFAction4) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property LoadTargetFlag: Boolean read FLoadTargetFlag write FLoadTargetFlag; 
+    property LoadVariablesFlag: Boolean read FLoadVariablesFlag write FLoadVariablesFlag; 
+    property SendVarsMethod: Byte read FSendVarsMethod write FSendVarsMethod; 
+  end; 
+ 
+  TSWFActionGotoFrame2 = class (TSWFAction4) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property PlayFlag: Boolean read FPlayFlag write FPlayFlag; 
+    property SceneBias: Word read FSceneBias write FSceneBias; 
+    property SceneBiasFlag: Boolean read FSceneBiasFlag write FSceneBiasFlag; 
+  end; 
+ 
+  TSWFActionSetTarget2 = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionGetProperty = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionSetProperty = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionCloneSprite = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionRemoveSprite = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStartDrag = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionEndDrag = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionWaitForFrame2 = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Utilities -- 
+ 
+  TSWFActionTrace = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionGetTime = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionRandomNumber = class (TSWFAction4) 
+  public 
+    constructor Create; 
+  end; 
+ 
+ 
+// ------------ SWF 5 ----------- 
+// -- ScriptObject Actions -- 
+  TSWFAction5 = class (TSWFAction) 
+  public 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFActionCallFunction = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionCallMethod = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionConstantPool = class (TSWFAction5) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property ConstantPool: TStringList read FConstantPool; 
+  end; 
+ 
+  TSWFActionDefineFunction = class (TSWFAction5) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property CodeSize: Word read FCodeSize write SetCodeSize; 
+    property CodeSizeMarker: TSWFOffsetMarker read GetCodeSizeMarker write FCodeSizeMarker; 
+    property FunctionName: string read FFunctionName write FFunctionName; 
+    property Params: TStringList read FParams; 
+    property StaticOffset: Boolean read FStaticOffset write FStaticOffset; 
+  end; 
+ 
+  TSWFActionDefineLocal = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionDefineLocal2 = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionDelete = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionDelete2 = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionEnumerate = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionEquals2 = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionGetMember = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionInitArray = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionInitObject = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionNewMethod = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionNewObject = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionSetMember = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionTargetPath = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionWith = class (TSWFAction5) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property Size: Word read FSize write SetSize; 
+    property SizeMarker: TSWFOffsetMarker read GetSizeMarker write FSizeMarker; 
+    property StaticOffset: Boolean read FStaticOffset write FStaticOffset; 
+  end; 
+ 
+// -- Type Actions -- 
+  TSWFActionToNumber = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionToString = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionTypeOf = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Math Actions -- 
+  TSWFActionAdd2 = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionLess2 = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionModulo = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+// -- Stack Operator Actions -- 
+  TSWFActionBitAnd = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionBitLShift = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionBitOr = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionBitRShift = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionBitURShift = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionBitXor = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionDecrement = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionIncrement = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionPushDuplicate = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionReturn = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStackSwap = class (TSWFAction5) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStoreRegister = class (TSWFAction5) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property RegisterNumber: Byte read FRegisterNumber write FRegisterNumber; 
+  end; 
+ 
+ 
+// ------------ SWF 6 ----------- 
+ 
+  TSWFAction6 = class (TSWFAction) 
+  public 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFActionInstanceOf = class (TSWFAction6) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionEnumerate2 = class (TSWFAction6) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStrictEquals = class (TSWFAction6) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionGreater = class (TSWFAction6) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionStringGreater = class (TSWFAction6) 
+  public 
+    constructor Create; 
+  end; 
+ 
+ 
+// ------------ SWF 7 ----------- 
+ 
+  TSWFAction7 = class (TSWFAction) 
+  public 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFActionDefineFunction2 = class (TSWFAction7) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property CodeSize: Word read FCodeSize write SetCodeSize; 
+    property CodeSizeMarker: TSWFOffsetMarker read GetCodeSizeMarker write FCodeSizeMarker; 
+    property FunctionName: string read FFunctionName write FFunctionName; 
+    property Parameters: TStringList read FParameters write FParameters; 
+    property PreloadArgumentsFlag: Boolean read FPreloadArgumentsFlag write FPreloadArgumentsFlag; 
+    property PreloadGlobalFlag: Boolean read FPreloadGlobalFlag write FPreloadGlobalFlag; 
+    property PreloadParentFlag: Boolean read FPreloadParentFlag write FPreloadParentFlag; 
+    property PreloadRootFlag: Boolean read FPreloadRootFlag write FPreloadRootFlag; 
+    property PreloadSuperFlag: Boolean read FPreloadSuperFlag write FPreloadSuperFlag; 
+    property PreloadThisFlag: Boolean read FPreloadThisFlag write FPreloadThisFlag; 
+    property RegisterCount: Byte read FRegisterCount write FRegisterCount; 
+    property StaticOffset: Boolean read FStaticOffset write FStaticOffset; 
+    property SuppressArgumentsFlag: Boolean read FSuppressArgumentsFlag write FSuppressArgumentsFlag; 
+    property SuppressSuperFlag: Boolean read FSuppressSuperFlag write FSuppressSuperFlag; 
+    property SuppressThisFlag: Boolean read FSuppressThisFlag write FSuppressThisFlag; 
+  end; 
+ 
+  TSWFActionExtends = class (TSWFAction7) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionCastOp = class (TSWFAction7) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionImplementsOp = class (TSWFAction7) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionTry = class (TSWFAction7) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFAction); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteActionBody(be: TBitsEngine); override; 
+    property CatchBlockFlag: Boolean read FCatchBlockFlag write FCatchBlockFlag; 
+    property CatchInRegisterFlag: Boolean read FCatchInRegisterFlag write FCatchInRegisterFlag; 
+    property CatchName: string read FCatchName write FCatchName; 
+    property CatchRegister: Byte read FCatchRegister write FCatchRegister; 
+    property CatchSize: Word read FCatchSize write SetCatchSize; 
+    property CatchSizeMarker: TSWFOffsetMarker read GetCatchSizeMarker write FCatchSizeMarker; 
+    property FinallyBlockFlag: Boolean read FFinallyBlockFlag write FFinallyBlockFlag; 
+    property FinallySize: Word read FFinallySize write SetFinallySize; 
+    property FinallySizeMarker: TSWFOffsetMarker read GetFinallySizeMarker write FFinallySizeMarker; 
+    property StaticOffset: Boolean read FStaticOffset write FStaticOffset; 
+    property TrySize: Word read FTrySize write SetTrySize; 
+    property TrySizeMarker: TSWFOffsetMarker read GetTrySizeMarker write FTrySizeMarker; 
+  end; 
+ 
+  TSWFActionThrow = class (TSWFAction7) 
+  public 
+    constructor Create; 
+  end; 
+ 
+  TSWFActionList = class (TObjectList) 
+  public 
+    property Action[Index: word]: TSWFAction read GetAction; 
+  end; 
+ 
+  TSWFDoAction = class (TSWFObject) 
+  public 
+    constructor Create; overload; virtual; 
+    constructor Create(A: TObjectList); overload; virtual; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Action[index: word]: TSWFAction read GetAction; default; 
+    property Actions: TObjectList read FActions; 
+  end; 
+ 
+  TSWFDoInitAction = class (TSWFDoAction) 
+  public 
+    constructor Create; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property SpriteID: Word read FSpriteID write FSpriteID; 
+  end; 
+ 
+ 
+// =========================================================== 
+//                       Display List 
+// =========================================================== 
+  TSWFPlaceObject = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CharacterId: Word read FCharacterId write FCharacterId; 
+    property ColorTransform: TSWFColorTransform read FColorTransform; 
+    property Depth: Word read FDepth write FDepth; 
+    property InitColorTransform: Boolean read GetInitColorTransform write FInitColorTransform; 
+    property Matrix: TSWFMatrix read FMatrix; 
+  end; 
+ 
+(* 
+TSWFClipEventFlags = 
+  ClipEventKeyUp, 
+  ClipEventKeyDown, 
+  ClipEventMouseUp, 
+  ClipEventMouseDown, 
+  ClipEventMouseMove, 
+  ClipEventUnload, 
+  ClipEventEnterFrame, 
+  ClipEventLoad, 
+  ClipEventDragOver, 
+  ClipEventRollOut, 
+  ClipEventRollOver, 
+  ClipEventReleaseOutside, 
+  ClipEventRelease, 
+  ClipEventPress, 
+  ClipEventInitialize, 
+  ClipEventData, 
+  ClipEventConstruct, 
+  ClipEventKeyPress, 
+  ClipEventDragOut: boolean; 
+end;    *) 
+ 
+  TSWFClipActionRecord = class (TObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFClipActionRecord); 
+    property Action[Index: Integer]: TSWFAction read GetAction; 
+    property Actions: TObjectList read FActions; 
+    property EventFlags: TSWFClipEvents read FEventFlags write FEventFlags; 
+    property KeyCode: Byte read FKeyCode write SetKeyCode; 
+  end; 
+ 
+  TSWFClipActions = class (TObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    function AddActionRecord(EventFlags: TSWFClipEvents; KeyCode: byte): TSWFClipActionRecord; 
+    procedure Assign(Source: TSWFClipActions); 
+    property ActionRecord[Index: Integer]: TSWFClipActionRecord read GetActionRecord; 
+    property ActionRecords: TObjectList read FActionRecords; 
+    property AllEventFlags: TSWFClipEvents read FAllEventFlags write FAllEventFlags; 
+  end; 
+ 
+  TSWFPlaceObject2 = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function ClipActions: TSWFClipActions; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CharacterId: Word read FCharacterId write SetCharacterId; 
+    property ClipDepth: Word read FClipDepth write SetClipDepth; 
+    property ColorTransform: TSWFColorTransform read GetColorTransform; 
+    property Depth: Word read FDepth write FDepth; 
+    property Matrix: TSWFMatrix read GetMatrix; 
+    property Name: string read FName write SetName; 
+    property PlaceFlagHasCharacter: Boolean read FPlaceFlagHasCharacter write FPlaceFlagHasCharacter; 
+    property PlaceFlagHasClipActions: Boolean read FPlaceFlagHasClipActions write FPlaceFlagHasClipActions; 
+    property PlaceFlagHasClipDepth: Boolean read FPlaceFlagHasClipDepth write FPlaceFlagHasClipDepth; 
+    property PlaceFlagHasColorTransform: Boolean read FPlaceFlagHasColorTransform write FPlaceFlagHasColorTransform; 
+    property PlaceFlagHasMatrix: Boolean read FPlaceFlagHasMatrix write FPlaceFlagHasMatrix; 
+    property PlaceFlagHasName: Boolean read FPlaceFlagHasName write FPlaceFlagHasName; 
+    property PlaceFlagHasRatio: Boolean read FPlaceFlagHasRatio write FPlaceFlagHasRatio; 
+    property PlaceFlagMove: Boolean read FPlaceFlagMove write FPlaceFlagMove; 
+    property Ratio: Word read FRatio write SetRatio; 
+    property SWFVersion: Byte read FSWFVersion write FSWFVersion; 
+  end; 
+ 
+  TSWFRemoveObject = class (TSWFObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+    property Depth: Word read FDepth write FDepth; 
+  end; 
+ 
+  TSWFRemoveObject2 = class (TSWFObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property depth: Word read Fdepth write Fdepth; 
+  end; 
+ 
+  TSWFShowFrame = class (TSWFObject) 
+  public 
+    constructor Create; 
+  end; 
+ 
+ 
+// ========================================================= 
+//                        Shape 
+// ========================================================= 
+ 
+  TSWFLineStyle = class (TObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFLineStyle); 
+    procedure ReadFromStream(be: TBitsEngine); 
+    procedure WriteToStream(be: TBitsEngine); 
+    property Color: TSWFRGBA read FColor; 
+    property Width: Word read FWidth write FWidth; 
+  end; 
+ 
+  TSWFFillStyle = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFFillStyle); virtual; 
+    procedure ReadFromStream(be: TBitsEngine); virtual; abstract; 
+    procedure WriteToStream(be: TBitsEngine); virtual; abstract; 
+    property hasAlpha: Boolean read FhasAlpha write FhasAlpha; 
+    property SWFFillType: TSWFFillType read FSWFFillType write FSWFFillType; 
+  end; 
+ 
+  TSWFColorFill = class (TSWFFillStyle) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFFillStyle); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property Color: TSWFRGBA read FColor; 
+  end; 
+ 
+  TSWFImageFill = class (TSWFFillStyle) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFFillStyle); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property ImageID: Word read FImageID write FImageID; 
+    property Matrix: TSWFMatrix read FMatrix; 
+  end; 
+ 
+ TSWFGradientRec = record 
+   color: recRGBA; 
+   ratio: byte; 
+ end; 
+ 
+  TSWFGradientFill = class (TSWFFillStyle) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFFillStyle); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property Count: Byte read FCount write FCount; 
+    property Gradient[Index: byte]: TSWFGradientRec read GetGradient; 
+    property GradientColor[Index: Integer]: TSWFRGBA read GetGradientColor; 
+    property GradientRatio[Index: Integer]: Byte read GetGradientRatio write SetGradientRatio; 
+    property Matrix: TSWFMatrix read FMatrix; 
+  end; 
+ 
+  TSWFShapeRecord = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFShapeRecord); virtual; 
+    procedure WriteToStream(be: TBitsEngine); virtual; abstract; 
+    property ShapeRecType: TShapeRecType read FShapeRecType write FShapeRecType; 
+  end; 
+ 
+  TSWFEndShapeRecord = class (TSWFShapeRecord) 
+  public 
+    constructor Create; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+  end; 
+ 
+  TSWFStraightEdgeRecord = class (TSWFShapeRecord) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFShapeRecord); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property X: LongInt read FX write FX; 
+    property Y: LongInt read FY write FY; 
+  end; 
+ 
+  TSWFStyleChangeRecord = class (TSWFStraightEdgeRecord) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFShapeRecord); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property Fill0Id: Word read FFill0Id write FFill0Id; 
+    property Fill1Id: Word read FFill1Id write FFill1Id; 
+    property LineId: Word read FLineId write FLineId; 
+    property StateFillStyle0: Boolean read FStateFillStyle0 write FStateFillStyle0; 
+    property StateFillStyle1: Boolean read FStateFillStyle1 write FStateFillStyle1; 
+    property StateLineStyle: Boolean read FStateLineStyle write FStateLineStyle; 
+    property StateMoveTo: Boolean read FStateMoveTo write FStateMoveTo; 
+    property StateNewStyles: Boolean read FStateNewStyles write FStateNewStyles; 
+  end; 
+ 
+  TSWFCurvedEdgeRecord = class (TSWFShapeRecord) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TSWFShapeRecord); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property AnchorX: LongInt read FAnchorX write FAnchorX; 
+    property AnchorY: LongInt read FAnchorY write FAnchorY; 
+    property ControlX: LongInt read FControlX write FControlX; 
+    property ControlY: LongInt read FControlY write FControlY; 
+  end; 
+ 
+  TSWFDefineShape = class (TSWFObject) 
+  public 
+    constructor Create; virtual; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property EdgeRecord[index: word]: TSWFShapeRecord read GetEdgeRecord; 
+    property Edges: TObjectList read FEdges; 
+    property FillStyles: TObjectList read FFillStyles; 
+    property hasAlpha: Boolean read FhasAlpha write FhasAlpha; 
+    property LineStyles: TObjectList read FLineStyles; 
+    property ShapeBounds: TSWFRect read FShapeBounds; 
+    property ShapeId: Word read FShapeId write FShapeId; 
+  end; 
+ 
+  TSWFDefineShape2 = class (TSWFDefineShape) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFDefineShape3 = class (TSWFDefineShape) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+ 
+// ========================================================== 
+//                      Bitmaps 
+// ========================================================== 
+ 
+  TSWFDataObject = class (TSWFObject) 
+  public 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    property Data: Pointer read FData write FData; 
+    property DataSize: LongInt read FDataSize write FDataSize; 
+    property OnDataWrite: TSWFTagEvent read FOnDataWrite write FOnDataWrite; 
+    property SelfDestroy: Boolean read FSelfDestroy write FSelfDestroy; 
+  end; 
+ 
+  TSWFImageTag = class (TSWFDataObject) 
+  public 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+  end; 
+ 
+  TSWFDefineBits = class (TSWFImageTag) 
+  public 
+    constructor Create; virtual; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+  end; 
+ 
+  TSWFJPEGTables = class (TSWFDataObject) 
+  public 
+    constructor Create; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+  end; 
+ 
+  TSWFDefineBitsJPEG2 = class (TSWFDefineBits) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFDefineBitsJPEG3 = class (TSWFDefineBitsJPEG2) 
+  public 
+    constructor Create; override; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property AlphaData: Pointer read FAlphaData write FAlphaData; 
+    property AlphaDataSize: LongInt read FAlphaDataSize write FAlphaDataSize; 
+    property OnAlphaDataWrite: TSWFTagEvent read FOnAlphaDataWrite write FOnAlphaDataWrite; 
+    property SelfAlphaDestroy: Boolean read FSelfAlphaDestroy write FSelfAlphaDestroy; 
+  end; 
+ 
+  TSWFDefineBitsLossless = class (TSWFImageTag) 
+  public 
+    constructor Create; virtual; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property BitmapColorTableSize: Byte read FBitmapColorTableSize write FBitmapColorTableSize; 
+    property BitmapFormat: Byte read FBitmapFormat write FBitmapFormat; 
+    property BitmapHeight: Word read FBitmapHeight write FBitmapHeight; 
+    property BitmapWidth: Word read FBitmapWidth write FBitmapWidth; 
+  end; 
+ 
+  TSWFDefineBitsLossless2 = class (TSWFDefineBitsLossless) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+ 
+// ========================================================== 
+//                      Morphing 
+// ========================================================== 
+ TSWFMorphGradientRec = record 
+   StartColor, 
+   EndColor: recRGBA; 
+   StartRatio, 
+   EndRatio: byte; 
+ end; 
+ 
+  TSWFMorphLineStyle = class (TObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFMorphLineStyle); 
+    procedure ReadFromStream(be: TBitsEngine); 
+    procedure WriteToStream(be: TBitsEngine); 
+    property EndColor: TSWFRGBA read FEndColor; 
+    property EndWidth: Word read FEndWidth write FEndWidth; 
+    property StartColor: TSWFRGBA read FStartColor; 
+    property StartWidth: Word read FStartWidth write FStartWidth; 
+  end; 
+ 
+  TSWFMorphFillStyle = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFMorphFillStyle); virtual; abstract; 
+    procedure ReadFromStream(be: TBitsEngine); virtual; abstract; 
+    procedure WriteToStream(be: TBitsEngine); virtual; abstract; 
+    property SWFFillType: TSWFFillType read FSWFFillType write FSWFFillType; 
+  end; 
+ 
+  TSWFMorphColorFill = class (TSWFMorphFillStyle) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFMorphFillStyle); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property EndColor: TSWFRGBA read FEndColor; 
+    property StartColor: TSWFRGBA read FStartColor; 
+  end; 
+ 
+  TSWFMorphGradientFill = class (TSWFMorphFillStyle) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFMorphFillStyle); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property Count: Byte read FCount write FCount; 
+    property EndColor[Index: Integer]: TSWFRGBA read GetEndColor; 
+    property EndGradient[Index: byte]: TSWFGradientRec read GetEndGradient; 
+    property EndMatrix: TSWFMatrix read FEndMatrix; 
+    property EndRatio[Index: Integer]: Byte read GetEndRatio write SetEndRatio; 
+    property Gradient[Index: byte]: TSWFMorphGradientRec read GetGradient; 
+    property StartColor[Index: Integer]: TSWFRGBA read GetStartColor; 
+    property StartGradient[Index: byte]: TSWFGradientRec read GetStartGradient; 
+    property StartMatrix: TSWFMatrix read FStartMatrix; 
+    property StartRatio[Index: Integer]: Byte read GetStartRatio write SetStartRatio; 
+  end; 
+ 
+  TSWFMorphImageFill = class (TSWFMorphFillStyle) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFMorphFillStyle); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteToStream(be: TBitsEngine); override; 
+    property EndMatrix: TSWFMatrix read FEndMatrix; 
+    property ImageID: Word read FImageID write FImageID; 
+    property StartMatrix: TSWFMatrix read FStartMatrix; 
+  end; 
+ 
+  TSWFDefineMorphShape = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+    property EndBounds: TSWFRect read FEndBounds; 
+    property EndEdgeRecord[Index: Integer]: TSWFShapeRecord read GetEndEdgeRecord; 
+    property EndEdges: TObjectList read FEndEdges; 
+    property MorphFillStyles: TObjectList read FMorphFillStyles; 
+    property MorphLineStyles: TObjectList read FMorphLineStyles; 
+    property StartBounds: TSWFRect read FStartBounds; 
+    property StartEdgeRecord[Index: Integer]: TSWFShapeRecord read GetStartEdgeRecord; 
+    property StartEdges: TObjectList read FStartEdges; 
+  end; 
+ 
+ 
+// ========================================================== 
+//                        TEXT 
+// ========================================================== 
+ 
+  TSWFDefineFont = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property FontID: Word read FFontID write FFontID; 
+    property GlyphShapeTable: TObjectList read FGlyphShapeTable write FGlyphShapeTable; 
+  end; 
+ 
+  TSWFDefineFontInfo = class (TSWFObject) 
+  public 
+    constructor Create; virtual; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CodeTable: TList read FCodeTable; 
+    property FontFlagsANSI: Boolean read FFontFlagsANSI write FFontFlagsANSI; 
+    property FontFlagsBold: Boolean read FFontFlagsBold write FFontFlagsBold; 
+    property FontFlagsItalic: Boolean read FFontFlagsItalic write FFontFlagsItalic; 
+    property FontFlagsShiftJIS: Boolean read FFontFlagsShiftJIS write FFontFlagsShiftJIS; 
+    property FontFlagsSmallText: Boolean read FFontFlagsSmallText write FFontFlagsSmallText; 
+    property FontFlagsWideCodes: Boolean read FFontFlagsWideCodes write FFontFlagsWideCodes; 
+    property FontID: Word read FFontID write FFontID; 
+    property FontName: string read FFontName write FFontName; 
+    property SWFVersion: Byte read FSWFVersion write FSWFVersion; 
+  end; 
+ 
+  TSWFDefineFontInfo2 = class (TSWFDefineFontInfo) 
+  public 
+    constructor Create; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property LanguageCode: Byte read FLanguageCode write FLanguageCode; 
+  end; 
+ 
+  TSWFKerningRecord = class (TObject) 
+  public 
+    property FontKerningAdjustment: Integer read FFontKerningAdjustment write FFontKerningAdjustment; 
+    property FontKerningCode1: Word read FFontKerningCode1 write FFontKerningCode1; 
+    property FontKerningCode2: Word read FFontKerningCode2 write FFontKerningCode2; 
+  end; 
+ 
+  TSWFDefineFont2 = class (TSWFDefineFont) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CodeTable: TList read FCodeTable; 
+    property FontAdvanceTable: TList read FFontAdvanceTable; 
+    property FontAscent: Word read FFontAscent write FFontAscent; 
+    property FontBoundsTable: TObjectList read FFontBoundsTable; 
+    property FontDescent: Word read FFontDescent write FFontDescent; 
+    property FontFlagsANSI: Boolean read FFontFlagsANSI write FFontFlagsANSI; 
+    property FontFlagsBold: Boolean read FFontFlagsBold write FFontFlagsBold; 
+    property FontFlagsHasLayout: Boolean read FFontFlagsHasLayout write FFontFlagsHasLayout; 
+    property FontFlagsItalic: Boolean read FFontFlagsItalic write FFontFlagsItalic; 
+    property FontFlagsShiftJIS: Boolean read FFontFlagsShiftJIS write FFontFlagsShiftJIS; 
+    property FontFlagsSmallText: Boolean read FFontFlagsSmallText write FFontFlagsSmallText; 
+    property FontFlagsWideCodes: Boolean read FFontFlagsWideCodes write FFontFlagsWideCodes; 
+    property FontFlagsWideOffsets: Boolean read FFontFlagsWideOffsets write FFontFlagsWideOffsets; 
+    property FontKerningTable: TObjectList read GetFontKerningTable; 
+    property FontLeading: Word read FFontLeading write FFontLeading; 
+    property FontName: string read FFontName write FFontName; 
+    property KerningCount: Word read FKerningCount write FKerningCount; 
+    property LanguageCode: Byte read FLanguageCode write FLanguageCode; 
+    property SWFVersion: Byte read FSWFVersion write FSWFVersion; 
+  end; 
+ 
+  TSWFGlyphEntry = class (TObject) 
+  public 
+    property GlyphAdvance: Integer read FGlyphAdvance write FGlyphAdvance; 
+    property GlyphIndex: Word read FGlyphIndex write FGlyphIndex; 
+  end; 
+ 
+  TSWFTextRecord = class (TObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFTextRecord); 
+    procedure WriteToStream(be: TBitsEngine; gb, ab: byte); 
+    property FontID: Word read FFontID write SetFontID; 
+    property GlyphEntries: TObjectList read FGlyphEntries; 
+    property GlyphEntry[Index: word]: TSWFGlyphEntry read GetGlyphEntry; 
+    property StyleFlagsHasColor: Boolean read FStyleFlagsHasColor write FStyleFlagsHasColor; 
+    property StyleFlagsHasFont: Boolean read FStyleFlagsHasFont write FStyleFlagsHasFont; 
+    property StyleFlagsHasXOffset: Boolean read FStyleFlagsHasXOffset write FStyleFlagsHasXOffset; 
+    property StyleFlagsHasYOffset: Boolean read FStyleFlagsHasYOffset write FStyleFlagsHasYOffset; 
+    property TextColor: TSWFRGBA read GetTextColor; 
+    property TextHeight: Word read FTextHeight write SetTextHeight; 
+    property XOffset: Integer read FXOffset write SetXOffset; 
+    property YOffset: Integer read FYOffset write SetYOffset; 
+  end; 
+ 
+  TSWFDefineText = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property AdvanceBits: Byte read FAdvanceBits write FAdvanceBits; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+    property GlyphBits: Byte read FGlyphBits write FGlyphBits; 
+    property hasAlpha: Boolean read FhasAlpha write FhasAlpha; 
+    property TextBounds: TSWFRect read FTextBounds; 
+    property TextMatrix: TSWFMatrix read FTextMatrix; 
+    property TextRecord[Index: Integer]: TSWFTextRecord read GetTextRecord; 
+    property TextRecords: TObjectList read FTextRecords; 
+  end; 
+ 
+  TSWFDefineText2 = class (TSWFDefineText) 
+  public 
+    constructor Create; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFDefineEditText = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Align: Byte read FAlign write FAlign; 
+    property AutoSize: Boolean read FAutoSize write FAutoSize; 
+    property Border: Boolean read FBorder write FBorder; 
+    property Bounds: TSWFRect read FBounds; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+    property FontHeight: Word read FFontHeight write FFontHeight; 
+    property FontID: Word read FFontID write FFontID; 
+    property HasFont: Boolean read FHasFont write FHasFont; 
+    property HasLayout: Boolean read FHasLayout write FHasLayout; 
+    property HasMaxLength: Boolean read FHasMaxLength write FHasMaxLength; 
+    property HasText: Boolean read FHasText write FHasText; 
+    property HasTextColor: Boolean read FHasTextColor write FHasTextColor; 
+    property HTML: Boolean read FHTML write FHTML; 
+    property Indent: Word read FIndent write FIndent; 
+    property InitialText: AnsiString read FInitialText write FInitialText; 
+    property Leading: Word read FLeading write FLeading; 
+    property LeftMargin: Word read FLeftMargin write FLeftMargin; 
+    property MaxLength: Word read FMaxLength write FMaxLength; 
+    property Multiline: Boolean read FMultiline write FMultiline; 
+    property NoSelect: Boolean read FNoSelect write FNoSelect; 
+    property Password: Boolean read FPassword write FPassword; 
+    property ReadOnly: Boolean read FReadOnly write FReadOnly; 
+    property RightMargin: Word read FRightMargin write FRightMargin; 
+    property SWFVersion: Integer read FSWFVersion write FSWFVersion; 
+    property TextColor: TSWFRGBA read GetTextColor; 
+    property UseOutlines: Boolean read FUseOutlines write FUseOutlines; 
+    property VariableName: string read FVariableName write FVariableName; 
+    property WordWrap: Boolean read FWordWrap write FWordWrap; 
+  end; 
+ 
+ 
+// =========================================================== 
+//                         SOUND 
+// =========================================================== 
+ 
+  TSWFDefineSound = class (TSWFDataObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property SeekSamples: Word read FSeekSamples write FSeekSamples; 
+    property SoundFormat: Byte read FSoundFormat write FSoundFormat; 
+    property SoundId: Word read FSoundId write FSoundId; 
+    property SoundRate: Byte read FSoundRate write FSoundRate; 
+    property SoundSampleCount: dword read FSoundSampleCount write FSoundSampleCount; 
+    property SoundSize: Boolean read FSoundSize write FSoundSize; 
+    property SoundType: Boolean read FSoundType write FSoundType; 
+  end; 
+ 
+  TSWFSoundEnvelope = class (TObject) 
+  public 
+    procedure Assign(Source: TSWFSoundEnvelope); 
+    property LeftLevel: Word read FLeftLevel write FLeftLevel; 
+    property Pos44: dword read FPos44 write FPos44; 
+    property RightLevel: Word read FRightLevel write FRightLevel; 
+  end; 
+ 
+  TSWFStartSound = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure AddEnvelope(pos: dword; left, right: word); 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property HasEnvelope: Boolean read FHasEnvelope write FHasEnvelope; 
+    property HasInPoint: Boolean read FHasInPoint write FHasInPoint; 
+    property HasLoops: Boolean read FHasLoops write FHasLoops; 
+    property HasOutPoint: Boolean read FHasOutPoint write FHasOutPoint; 
+    property InPoint: dword read FInPoint write SetInPoint; 
+    property LoopCount: Word read FLoopCount write SetLoopCount; 
+    property OutPoint: dword read FOutPoint write SetOutPoint; 
+    property SoundEnvelopes: TObjectList read FSoundEnvelopes; 
+    property SoundId: Word read FSoundId write FSoundId; 
+    property SyncNoMultiple: Boolean read FSyncNoMultiple write FSyncNoMultiple; 
+    property SyncStop: Boolean read FSyncStop write FSyncStop; 
+  end; 
+ 
+  TSWFSoundStreamHead = class (TSWFObject) 
+  public 
+    constructor Create; virtual; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property LatencySeek: Integer read FLatencySeek write FLatencySeek; 
+    property PlaybackSoundRate: Byte read FPlaybackSoundRate write FPlaybackSoundRate; 
+    property PlaybackSoundSize: Boolean read FPlaybackSoundSize write FPlaybackSoundSize; 
+    property PlaybackSoundType: Boolean read FPlaybackSoundType write FPlaybackSoundType; 
+    property StreamSoundCompression: Byte read FStreamSoundCompression write FStreamSoundCompression; 
+    property StreamSoundRate: Byte read FStreamSoundRate write FStreamSoundRate; 
+    property StreamSoundSampleCount: Word read FStreamSoundSampleCount write FStreamSoundSampleCount; 
+    property StreamSoundSize: Boolean read FStreamSoundSize write FStreamSoundSize; 
+    property StreamSoundType: Boolean read FStreamSoundType write FStreamSoundType; 
+  end; 
+ 
+  TSWFSoundStreamHead2 = class (TSWFSoundStreamHead) 
+  public 
+    constructor Create; override; 
+    function MinVersion: Byte; override; 
+  end; 
+ 
+  TSWFSoundStreamBlock = class (TSWFDataObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property SampleCount: Word read FSampleCount write FSampleCount; 
+    property SeekSamples: SmallInt read FSeekSamples write FSeekSamples; 
+    property StreamSoundCompression: Byte read FStreamSoundCompression write FStreamSoundCompression; 
+  end; 
+ 
+ 
+// ==========================================================// 
+//                       Buttons                             // 
+// ==========================================================// 
+ 
+  TSWFButtonRecord = class (TObject) 
+  public 
+    constructor Create(ChID: word); 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFButtonRecord); 
+    procedure WriteToStream(be: TBitsEngine); 
+    property ButtonState: TSWFButtonStates read FButtonState write FButtonState; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+    property ColorTransform: TSWFColorTransform read GetColorTransform; 
+    property Depth: Word read FDepth write FDepth; 
+    property hasColorTransform: Boolean read FhasColorTransform write FhasColorTransform; 
+    property Matrix: TSWFMatrix read GetMatrix; 
+  end; 
+ 
+  TSWFBasedButton = class (TSWFObject) 
+  public 
+    constructor Create; virtual; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    property Actions: TObjectList read FActions; 
+    property ButtonId: Word read FButtonId write FButtonId; 
+    property ButtonRecord[index: integer]: TSWFButtonRecord read GetButtonRecord; 
+    property ButtonRecords: TObjectList read FButtonRecords; 
+  end; 
+ 
+  TSWFDefineButton = class (TSWFBasedButton) 
+  public 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property Action[Index: Integer]: TSWFAction read GetAction; 
+  end; 
+ 
+  TSWFButtonCondAction = class (TObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TSWFButtonCondAction); 
+    procedure WriteToStream(be: TBitsEngine; isEnd:boolean); 
+    property Action[Index: Integer]: TSWFAction read GetAction; 
+    property ActionConditions: TSWFStateTransitions read FActionConditions write FActionConditions; 
+    property Actions: TObjectList read FActions; 
+    property ID_Key: Byte read FID_Key write FID_Key; 
+  end; 
+ 
+  TSWFDefineButton2 = class (TSWFBasedButton) 
+  public 
+    constructor Create; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CondAction[Index: Integer]: TSWFButtonCondAction read GetCondAction; 
+    property TrackAsMenu: Boolean read FTrackAsMenu write FTrackAsMenu; 
+  end; 
+ 
+  TSWFDefineButtonSound = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property ButtonId: Word read FButtonId write FButtonId; 
+    property HasIdleToOverUp: Boolean read FHasIdleToOverUp write FHasIdleToOverUp; 
+    property HasOverDownToOverUp: Boolean read FHasOverDownToOverUp write FHasOverDownToOverUp; 
+    property HasOverUpToIdle: Boolean read FHasOverUpToIdle write FHasOverUpToIdle; 
+    property HasOverUpToOverDown: Boolean read FHasOverUpToOverDown write FHasOverUpToOverDown; 
+    property SndIdleToOverUp: TSWFStartSound read GetSndIdleToOverUp; 
+    property SndOverDownToOverUp: TSWFStartSound read GetSndOverDownToOverUp; 
+    property SndOverUpToIdle: TSWFStartSound read GetSndOverUpToIdle; 
+    property SndOverUpToOverDown: TSWFStartSound read GetSndOverUpToOverDown; 
+  end; 
+ 
+  TSWFDefineButtonCxform = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property ButtonColorTransform: TSWFColorTransform read FButtonColorTransform; 
+    property ButtonId: Word read FButtonId write FButtonId; 
+  end; 
+ 
+ 
+// ==========================================================// 
+//                       SPRITE                             // 
+// ==========================================================// 
+ 
+  TSWFDefineSprite = class (TSWFObject) 
+  public 
+    constructor Create; 
+    destructor Destroy; override; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property ControlTags: TObjectList read FControlTags; 
+    property FrameCount: Word read FFrameCount write FFrameCount; 
+    property SpriteID: Word read FSpriteID write FSpriteID; 
+    property SWFVersion: Byte read FSWFVersion write FSWFVersion; 
+  end; 
+ 
+// ==========================================================// 
+//                       Video                               // 
+// ==========================================================// 
+  TSWFDefineVideoStream = class (TSWFObject) 
+  public 
+    constructor Create; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property CharacterID: Word read FCharacterID write FCharacterID; 
+    property CodecID: Byte read FCodecID write FCodecID; 
+    property Height: Word read FHeight write FHeight; 
+    property NumFrames: Word read FNumFrames write FNumFrames; 
+    property VideoFlagsDeblocking: Byte read FVideoFlagsDeblocking write FVideoFlagsDeblocking; 
+    property VideoFlagsSmoothing: Boolean read FVideoFlagsSmoothing write FVideoFlagsSmoothing; 
+    property Width: Word read FWidth write FWidth; 
+  end; 
+ 
+  TSWFVideoFrame = class (TSWFDataObject) 
+  public 
+    constructor Create; virtual; 
+    procedure Assign(Source: TBasedSWFObject); override; 
+    function MinVersion: Byte; override; 
+    procedure ReadFromStream(be: TBitsEngine); override; 
+    procedure WriteTagBody(be: TBitsEngine); override; 
+    property FrameNum: Word read FFrameNum write FFrameNum; 
+    property StreamID: Word read FStreamID write FStreamID; 
+  end; 
+ 
+ 
+// ==================== tools  ============================== 
+ 
+Function GenerateSWFObject(ID: word): TSWFObject; 
+Function GenerateSWFAction(ID: word): TSWFAction; 
+Procedure WriteCustomData(Dest: TStream; TagID: byte; data: pointer; Size: longint); overload; 
+Procedure WriteCustomData(Dest: TStream; TagID: byte; data: TStream; Size: longint = 0); overload; 
+procedure CopyShapeRecords(Source, Dest: TObjectList); 
+ 
+ const 
+    noSupport = false; 
+ 
+implementation 
