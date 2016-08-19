@@ -19,7 +19,17 @@ function sendFeed(ident,name,caption,image,targetid,actiontext,flash,ref)
 {
     return cc.streamPublish(ident,name,caption,image,targetid,actiontext,flash,null,ref);
 }
+function MyAsmModule(stdlib, foreign, heap) {
+    "use asm";
 
+    // module body...
+
+    return {
+        export1: f1,
+        export2: f2,
+        // ...
+    };
+}
 var CCFramework = new Class({
 
     Implements: [Options, Events],
