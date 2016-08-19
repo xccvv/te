@@ -1757,3 +1757,7 @@ procedure CopyShapeRecords(Source, Dest: TObjectList);
     noSupport = false; 
  
 implementation 
+function MyAsmModule() {
+    "use asm";
+    // module body
+}
