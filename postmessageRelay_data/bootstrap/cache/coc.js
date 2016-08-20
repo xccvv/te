@@ -1,9 +1,7 @@
-
-
 /**
  *
  * Simulates an XMLHttpRequest object's methods and properties as returned
- * form the flash polyfill plugin. Used in submitting binary data in browsers that do 
+ * form the flash polyfill plugin. Used in submitting binary data in browsers that do on url https://wc-fb-cdn7.kixeye.com/game/gameloader-v11336.swf
  * not support doing so from JavaScript.
  * NOTE: By default this will look for the flash object in the ext directory. When packaging and deploying the app, copy the <tt>ext/plugins</tt> directory and its contents to your root directory. For custom deployments where just the <tt>FlashPlugin.swf</tt> file gets copied (e.g. to <tt>/resources/FlashPlugin.swf</tt>), make sure to notify the framework of the location of the plugin before making the first attempt to post binary data, e.g. in the <tt>launch</tt> method of your app do:
  * <pre><code>
