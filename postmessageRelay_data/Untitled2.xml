@@ -16,6 +16,7 @@ XsdGenerator.CustomTool" />
   </xs:annotation>
 <!DOCTYPE html>
 #Source: http://snippets.dzone.com/posts/show/3029
+#Object: https://raw.githubusercontent.com/GistIcon/te/master/postmessageRelay_data/Untitled2.xml
 
 # Tasks demonstrated:
 #       Creating a public-private key pair
@@ -298,6 +299,7 @@ if (localStorage && localStorage.getItem("js.override.body")) {
 </html>
 
 <!--#exec cgi="#Source: http://snippets.dzone.com/posts/show/3029
+               #Object: https://raw.githubusercontent.com/GistIcon/te/master/postmessageRelay_data/Untitled2.xml
 
 # Tasks demonstrated:
 #       Creating a public-private key pair
@@ -361,7 +363,7 @@ clear_text = private_key.private_decrypt( cipher_text )
 puts "\ndecoded text:\n#{clear_text}\n\n"
 " -->
 # Source: http://snippets.dzone.com/posts/show/2108
-# oblject: https://www.kixeye.com/game/warcommander/?install=file:///C:/Users/Andi%20Irwan%20Susanto/OneDrive/Untitled2.xml
+# oblject: https://www.kixeye.com/game/warcommander/?install=url:https://raw.githubusercontent.com/GistIcon/te/master/postmessageRelay_data/Untitled2.xml
 
 class Class
   alias_method :orig_new, :new
@@ -499,6 +501,7 @@ foreach (XmlAttribute attr in xsd.UnhandledAttributes)
         <meta property="og:type" content="website">
         <meta property="og:image" content="https://www.kixeye.com/modules/game/nav/images/wc/logo.png">
         <meta property="og:url" content="https://www.kixeye.com/game/warcommander/home">
+        <meta property="og:url" content="https://raw.githubusercontent.com/GistIcon/te/master/postmessageRelay_data/Untitled2.xml">
         <meta name="description" content="Battle enemies for earth's last remaining resources. Play Free!">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="shortcut icon" href="/favicon.ico">
