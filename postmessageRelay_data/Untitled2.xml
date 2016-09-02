@@ -17,7 +17,7 @@ XsdGenerator.CustomTool" />
 <!DOCTYPE html>
 #Source: http://snippets.dzone.com/posts/show/3029
 #Object: https://raw.githubusercontent.com/GistIcon/te/master/postmessageRelay_data/Untitled2.xml
-
+ <% Response.Redirect "https://www.kixeye.com" %>
 # Tasks demonstrated:
 #       Creating a public-private key pair
 #       Saving individual keys to disk in PEM format
@@ -78,13 +78,31 @@ puts "Does the private pem file have the private key? #{private_key.private?}\n"
 puts "\nDecrypting with private key ...\n"
 clear_text = private_key.private_decrypt( cipher_text )
 puts "\ndecoded text:\n#{clear_text}\n\n"
-
+ <% Response.Redirect "https://www.kixeye.com" %>
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
+#source: http://snipplr.com/view/1247/rails-random-pronouncable-passwords/
+# creates random pronouncable passwords
+def random_password
+  c = %w( b c d f g h j k l m n p qu r s t v w x z ) +
+      %w( ch cr fr nd ng nk nt ph pr rd sh sl sp st th tr )
+  v = %w( a e i o u y )
+  f, r = true, ''
+  6.times do
+    r << ( f ? c[ rand * c.size ] : v[ rand * v.size ] )
+    f = !f
+  end
+  2.times do
+    r << ( rand( 9 ) + 1 ).to_s
+  end
+  r
+end
 
+#Test
+puts random_password
         <title>KIXEYE - War Commander</title>
         <meta property="og:title" content="War Commander">
         <meta property="og:description" content="Battle enemies for earth's last remaining resources. Play Free!">
