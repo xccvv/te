@@ -1,3 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<!-- git web interface version 2.9.1, (C) 2005-2006, Kay Sievers <kay.sievers@vrfy.org>, Christian Gierke -->
+<!-- git core binaries version 2.9.1 -->
+<head>
+<meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8"/>
+<meta name="generator" content="gitweb/2.9.1 git/2.9.1"/>
+<meta name="robots" content="index, nofollow"/>
+<title>git.ghostscript.com Git - ghostpdl.git/blob - Resource/Init/gs_lev2.ps</title>
+<link rel="stylesheet" type="text/css" href="static/gitweb.css"/>
+<link rel="alternate" title="ghostpdl.git - history of Resource/Init/gs_lev2.ps - RSS feed" href="/?p=ghostpdl.git;a=rss;f=Resource/Init/gs_lev2.ps" type="application/rss+xml" />
+<link rel="alternate" title="ghostpdl.git - history of Resource/Init/gs_lev2.ps - RSS feed (no merges)" href="/?p=ghostpdl.git;a=rss;f=Resource/Init/gs_lev2.ps;opt=--no-merges" type="application/rss+xml" />
+<link rel="alternate" title="ghostpdl.git - history of Resource/Init/gs_lev2.ps - Atom feed" href="/?p=ghostpdl.git;a=atom;f=Resource/Init/gs_lev2.ps" type="application/atom+xml" />
+<link rel="alternate" title="ghostpdl.git - history of Resource/Init/gs_lev2.ps - Atom feed (no merges)" href="/?p=ghostpdl.git;a=atom;f=Resource/Init/gs_lev2.ps;opt=--no-merges" type="application/atom+xml" />
+<link rel="shortcut icon" href="static/git-favicon.png" type="image/png" />
 <xs:schema elementFormDefault="qualified"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:code="http://weblogs.asp.net/cazzu"
