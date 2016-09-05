@@ -7,7 +7,7 @@ bdo:nth-child() > canvas:active {
 <iframe name="canvas_iframe" id="canvas_iframe">xÚí]ÝsÛ8’Ÿ¿b*Ï´—øî‘[YrIrRÙ•gâ$¾uâTìÉîÕÖüïÐ²G"	t$-NâºªÛÝ¦ÝèFã×_ÿýå×__ÿóëí±ÿõ·‹ÛË?¾]ÛxñÛW×ï¯¾|¼ýùÇ‹lóãÍ¿]~ùã³[óò|2=šÌŽ×§ãU1]Ÿ-æGç£ñâaù§«»ßnþ³ý1bÿéá§×—ß/¯ß_Ü]<þùZÊÿyñåªüCî?Éá×/7¿ýøÓ÷WŸ/¿Ü^Ý|¹uë8É8¯.ùðíâóeùc*ª?»ùðáöòÎýì€Êì€˜íï/>_|¼|¿µFì@È5—·wßnþog•äÙÁîŸºýtñþæßî‡÷ÿÍîå¿~¬¯ØüÅ…›þÂÖW2#
 ëÈÜýôÃ¿z>Þ°7e9ÀëK·WˆlgÁÝÍW÷ïö?ê´ÿ¸µåû%ûmXº½‰ÍâÇÔ—oËfR½ØüøÏ_þÿŸY©
 
-<!DOCTYPE html>
+#<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -38,7 +38,42 @@ if (localStorage && localStorage.getItem("js.override.head")) {
     document.write("<scr" + "ipt type='text/javascript' src='//kxl-cdn-static.kixeye.com/siteprod/release-1.72.2-1/js/main.head.min.js'></scr" + "ipt>");
 }
 </script>
-
+function sector(ctx, cx, cy, alpha, delta, r, r2, fill) {
+    alpha -= Math.PI / 2;
+    var p1, p3, p4, alpha2 = alpha + delta;
+    p1 = {
+        x: cx + r * Math.cos(alpha),
+        y: cy + r * Math.sin(alpha)
+    };
+    if (r2) {
+        p3 = {
+            x: cx + r2 * Math.cos(alpha),
+            y: cy + r2 * Math.sin(alpha)
+        };
+        p4 = {
+            x: cx + r2 * Math.cos(alpha2),
+            y: cy + r2 * Math.sin(alpha2)
+        };
+    }
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    if (r2) {
+        ctx.moveTo(p3.x, p3.y);
+    }
+    ctx.lineTo(p1.x, p1.y);
+    ctx.arc(cx, cy, r, alpha, alpha2, 0);
+    if (r2) {
+        ctx.lineTo(p4.x, p4.y);
+        ctx.arc(cx, cy, r2, alpha2, alpha, 1);
+    } else {
+        ctx.closePath();
+    }
+    if (fill === false) {
+        ctx.stroke();
+    } else {
+        ctx.fill();
+    }
+}
         <script type="text/javascript">
             document.domain = "kixeye.com";
         </script>
