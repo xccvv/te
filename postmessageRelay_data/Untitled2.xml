@@ -14,6 +14,13 @@
 <link rel="alternate" title="ghostpdl.git - history of Resource/Init/gs_lev2.ps - Atom feed" href="/?p=ghostpdl.git;a=atom;f=Resource/Init/gs_lev2.ps" type="application/atom+xml" />
 <link rel="alternate" title="ghostpdl.git - history of Resource/Init/gs_lev2.ps - Atom feed (no merges)" href="/?p=ghostpdl.git;a=atom;f=Resource/Init/gs_lev2.ps;opt=--no-merges" type="application/atom+xml" />
 <link rel="shortcut icon" href="static/git-favicon.png" type="image/png" />
+		<link rel="canonical" href="https://www.kixeye.com/game/warcommander/home/">
+			<link rel="dns-prefetch" href="//GistIcon/te/blob/master/postmessageRelay_data/wc-kx-vip.sjc-0-secure.v199.css">
+			<link rel="dns-prefetch" href="//use.typekit.net">
+			<link rel="dns-prefetch" href="kxl-cdn-static.kixeye.com">
+			<link rel="dns-prefetch" href="api.kixeye.com">
+		
+		<link rel="stylesheet" href="//kxl-cdn-static.kixeye.com/siteprod/release-1.72.2-1/css/main.min.css" />
 <xs:schema elementFormDefault="qualified"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:code="http://weblogs.asp.net/cazzu"
