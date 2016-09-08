@@ -31,6 +31,15 @@
   <xs:annotation>
     <xs:appinfo>
       <Code xmlns="http://weblogs.asp.net/cazzu">
+  [1]Certificate Policy:
+     Policy Identifier=2.16.840.1.114412.1.1
+     [1,1]Policy Qualifier Info:
+          Policy Qualifier Id=CPS
+          Qualifier:
+               https://www.digicert.com/CPS
+[2]Certificate Policy:
+     Policy Identifier=2.23.140.1.2.2
+
         <Extension
 Type="XsdGenerator.Extensions.FieldsToPropertiesExtension,
 XsdGenerator.CustomTool" />
