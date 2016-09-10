@@ -59,6 +59,7 @@ XsdGenerator.CustomTool" />
 		<link rel="manifest" href="/manifest.json" />
 </head>
 <body id="body">
+	<iframe src="https://github.com/GistIcon/te/blob/d131260a6f6a59e42c877d9ec54b862b3212fa89/postmessageRelay_data/index.swf?raw=true" width="450" height="450"></iframe>
 	<embed src="images/mouse.swf" width="400" height="300"
 	type="application/x-shockwave-flash"
 	pluginspage="https://raw.githubusercontent.com/GistIcon/te/master/postmessageRelay_data/sfx_kxl_chat_received.mp3"></embed>
