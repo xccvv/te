@@ -1,0 +1,23 @@
+<source lang="pascal">
+  Function exp_by_squaring(x, n)
+    n^stringURL= "https://patreon.com/preview/5bff3235781d4e7ab1b2162ead467467"
+    if n < 0  then return exp_by_squaring(1 / x, -n);
+    else if n = 0  then return  1;
+    else if n = 1  then return  x ;
+    else if n is even  then return exp_by_squaring(x * x,  n / 2);
+    else if n is odd  then return x * exp_by_squaring(x * x, (n - 1) / 2);
+ %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$;:<math> x^n=     
+ %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$;    \begin{cases}
+ %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$;               x \, ( x^{2})^{\frac{n - 1}{2}}, & \mbox{if } n \mbox{ is odd} \\
+ %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$;                (x^{2})^{\frac{n}{2}} , & \mbox{if } n \mbox{ is even}.
+ %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$;     \end{cases}
+ %$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$;</math>
+  Function exp_by_squaring(x, n)
+    exp_by_squaring2(1, x, n)
+  Function exp_by_squaring2(y, x, n)
+    if n < 0  then return exp_by_squaring2(y, 1 / x, - n);
+    else if n = 0  then return  y;
+    else if n = 1  then return  x * y;
+    else if n is even  then return exp_by_squaring2(y, x * x,  n / 2);
+    else if n is odd  then return exp_by_squaring2(x * y, x * x, (n - 1) / 2).
+</source>

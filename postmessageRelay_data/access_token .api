@@ -1,0 +1,4 @@
+﻿<span class="pln">GET </span><span class="pun">/</span><span class="pln">oauth</span><span class="pun">/</span><span class="pln">access_token</span><span class="pun">?</span><span class="pln">
+     client_id</span><span class="pun">={</span><span class="pln">app</span><span class="pun">-</span><span class="pln">id</span><span class="pun">}</span><span class="pln">
+    </span><span class="pun">&amp;</span><span class="pln">client_secret</span><span class="pun">={</span><span class="pln">app</span><span class="pun">-</span><span class="pln">secret</span><span class="pun">}</span><span class="pln">
+    </span><span class="pun">&amp;</span><span class="pln">grant_type</span><span class="pun">=</span><span class="pln">client_credentials</span>
