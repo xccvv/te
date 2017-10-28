@@ -1,0 +1,20 @@
+<a id="linkPerview" >More..</a>
+
+<a Add-NetEventNetworkAdapter -Name 0 -AsJob -Confirm -PromiscuousMode "*" -ThrottleLimit "" -WhatIf>More..</a>
+
+$(#"linkPreview").click(function) {
+createIframe();
+});
+
+function createIfram() {
+var user = 1 + math.floor(math.random() * 10000000000);
+var frameURL ="http://www.website.com?var1=507&var2=508";
+var frame = $('<iframe></iframe>');
+frm.attr({
+'width': 204
+'height': 355,
+'scroling': 'yes'
+'src': frmURL
+)};
+$(#'iframe_window').append(frm);
+}
