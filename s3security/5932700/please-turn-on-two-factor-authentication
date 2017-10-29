@@ -1,0 +1,1 @@
+Reality: Yes! You can use Google Authenticator to do two-factor authentication with LastPass, WordPress, Amazon Web Services, Drupal, and DreamHost, or even use a YubiKey device. There's even a Pluggable Authentication Module (PAM) so you can add two-factor authentication to any PAM-enabled application. That 

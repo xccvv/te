@@ -1,0 +1,25 @@
+CREATE TABLE tbl_a (
+    id int PRIMARY KEY,
+    some_other_id int,
+    value int
+) ENGINE=INNODB;
+Query OK, 0 rows affected (0.10 sec)
+
+CREATE TABLE tbl_b (
+    id int PRIMARY KEY,
+    a_id int,
+    FOREIGN KEY (a_id) REFERENCES tbl_a (some_other_id)
+) ENGINE=INNODB;
+ERROR 1005 (HY000): Can't create table 'e.tbl_b' (errno: 150)
+But if we add an index on some_other_id:
+
+CREATE INDEX ix_some_id ON tbl_a (some_other_id);
+Query OK, 0 rows affected (0.11 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+CREATE TABLE tbl_b (
+    id int PRIMARY KEY,
+    a_id int,
+    FOREIGN KEY (a_id) REFERENCES tbl_a (some_other_id)
+) ENGINE=INNODB;
+Query OK, 0 rows affected (0.06 sec)
