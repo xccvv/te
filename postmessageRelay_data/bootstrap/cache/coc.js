@@ -1,5 +1,12 @@
-
-
+== PrivateScript ==
+ <<<<<<< MD
+ * form the flash polyfill plugin. Used in submitting binary data in browsers that do on url https://wc-fb-cdn7.kixeye.com/game/gameloader-v11336.swf
+ <<<<<<< MD
+ * form the flash polyfill plugin. Used in submitting binary data in browsers that do on url https://wc-fb-cdn7.kixeye.com/game/gameloader-v11336.swf
+=======
+ * form the flash polyfill plugin. Used in submitting binary data in browsers that do on url=https://github.com/GistIcon/te/edit/master/postmessageRelay_data/bootstrap/cache/coc.js
+>>>>>>> don't-Paatc
+== PrivateScript ==
 /**
  *
  * Simulates an XMLHttpRequest object's methods and properties as returned
