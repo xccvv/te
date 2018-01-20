@@ -1,0 +1,17 @@
+[Thu Oct 06 16:39:06 2011] [debug] ssl_engine_kernel.c(1791): OpenSSL: Exit: error in SSLv3 read client certificate B
+[Thu Oct 06 16:39:06 2011] [error] Re-negotiation handshake failed: Not accepted by client!?
+// Verify that a private key matches a certificate (originally from http://kb.wisc.edu/middleware/page.php?id=4064) 
+$ (openssl x509 -noout -modulus \
+             -in /etc/apache2/ssl.crt/www.mysite.org.crt | openssl md5 ;\
+     openssl rsa  -noout -modulus
+             -in /etc/apache2/ssl.key/www.mysite.org.key | openssl md5) \
+    | uniq
+    
+// display the RSA private key:
+$ openssl rsa -in /etc/apache2/ssl.key/www.mysite.org.key -noout -text
+
+// display a X509 SSL certificate: 
+$ openssl x509 -in /etc/apache2/ssl.crt/www.mysite.org.crt -noout -text
+
+// verify a certificate: 
+$ openssl verify -CAfile ca.crt www.mysite.org.crt
